@@ -2,12 +2,16 @@
 
 /** Single row representation
 */
-class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable {
+namespace MVC\notorm\NotORM;
+
+use MVC\notorm\AbstractNotORM;
+
+class NotORMRow extends AbstractNotORM implements \IteratorAggregate, \ArrayAccess, \Countable, \JsonSerializable {
 	private $modified = array();
 	protected $row, $result, $primary;
 	
 	/** @access protected must be public because it is called from Result */
-	function __construct(array $row, NotORM_Result $result) {
+	function __construct(array $row, NotORMResult $result) {
 		$this->row = $row;
 		$this->result = $result;
 		if (array_key_exists($result->primary, $row)) {
@@ -38,7 +42,7 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 			}
 			if ($keys) {
 				$table = $this->result->notORM->structure->getReferencedTable($name, $this->result->table);
-				$referenced = new NotORM_Result($table, $this->result->notORM);
+				$referenced = new NotORMResult($table, $this->result->notORM);
 				$referenced->where("$table." . $this->result->notORM->structure->getPrimary($table), array_keys($keys));
 			} else {
 				$referenced = array();
@@ -63,7 +67,7 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	* @param NotORM_Row or null
 	* @return null
 	*/
-	function __set($name, NotORM_Row $value = null) {
+	function __set($name, NotORMRow $value = null) {
 		$column = $this->result->notORM->structure->getReferencedColumn($name, $this->result->table);
 		$this[$column] = $value;
 	}
@@ -80,12 +84,12 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	/** Get referencing rows
 	* @param string table name
 	* @param array (["condition"[, array("value")]])
-	* @return NotORM_MultiResult
+	* @return NotORMMultiResult
 	*/
 	function __call($name, array $args) {
 		$table = $this->result->notORM->structure->getReferencingTable($name, $this->result->table);
 		$column = $this->result->notORM->structure->getReferencingColumn($table, $this->result->table);
-		$return = new NotORM_MultiResult($table, $this->result, $column, $this[$this->result->primary]);
+		$return = new NotORMMultiResult($table, $this->result, $column, $this[$this->result->primary]);
 		$return->where("$table.$column", array_keys((array) $this->result->rows)); // (array) - is null after insert
 		if ($args) {
 			call_user_func_array(array($return, 'where'), $args);
@@ -102,7 +106,7 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 		if (!isset($data)) {
 			$data = $this->modified;
 		}
-		$result = new NotORM_Result($this->result->table, $this->result->notORM);
+		$result = new NotORMResult($this->result->table, $this->result->notORM);
 		$return = $result->where($this->result->primary, $this->primary)->update($data);
 		$this->primary = $this[$this->result->primary];
 		return $return;
@@ -113,7 +117,7 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	*/
 	function delete() {
 		// delete is an SQL keyword
-		$result = new NotORM_Result($this->result->table, $this->result->notORM);
+		$result = new NotORMResult($this->result->table, $this->result->notORM);
 		$return = $result->where($this->result->primary, $this->primary)->delete();
 		$this->primary = $this[$this->result->primary];
 		return $return;
@@ -130,7 +134,7 @@ class NotORM_Row extends NotORM_Abstract implements IteratorAggregate, ArrayAcce
 	
 	function getIterator() {
 		$this->access(null);
-		return new ArrayIterator($this->row);
+		return new \ArrayIterator($this->row);
 	}
 	
 	// Countable implementation

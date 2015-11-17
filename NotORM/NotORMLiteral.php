@@ -2,7 +2,10 @@
 
 /** SQL literal value
 */
-class NotORM_Literal {
+
+namespace MVC\notorm\NotORM;
+
+class NotORMLiteral {
 	protected $value = '';
 	
 	/** @var array */
